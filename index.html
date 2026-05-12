@@ -220,28 +220,6 @@ table.scen td:not(:first-child){text-align:right;}
   display:inline-block;vertical-align:middle;margin-right:5px;overflow:hidden;}
 .mbar-f{height:100%;border-radius:3px;}
 
-/* ── Setup ── */
-.setup{min-height:100vh;display:flex;align-items:center;justify-content:center;
-  padding:20px;background:var(--bg);}
-.setup-card{background:var(--card);border:1px solid var(--border);border-radius:20px;
-  padding:40px;max-width:450px;width:100%;position:relative;overflow:hidden;}
-.setup-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,#FF6B35,#FFB800,#FF6B35);}
-.setup-title{font-size:26px;font-weight:900;letter-spacing:-.03em;margin-bottom:5px;}
-.setup-title span{color:var(--orange);}
-.setup-sub{font-size:13px;color:var(--t2);margin:8px 0 26px;line-height:1.65;}
-.lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
-  color:var(--t3);margin-bottom:7px;display:block;}
-input[type=password]{width:100%;padding:11px 14px;border-radius:10px;
-  border:1px solid var(--border2);background:rgba(255,255,255,.05);
-  font-family:inherit;font-size:13px;color:var(--text);outline:none;
-  transition:border-color .15s;margin-bottom:8px;}
-input[type=password]:focus{border-color:var(--orange);background:rgba(255,107,53,.05);}
-input[type=password]::placeholder{color:var(--t3);}
-.setup-note{font-size:11px;color:var(--t3);line-height:1.6;margin-bottom:18px;}
-.setup-feats{background:rgba(255,255,255,.03);border:1px solid var(--border);
-  border-radius:10px;padding:13px 14px;font-size:11px;color:var(--t2);
-  line-height:1.9;margin-top:14px;}
 
 /* ── Animations ── */
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
@@ -455,48 +433,6 @@ function CircleProgress({pct,color,size=72,stroke=5}){
   );
 }
 
-function Setup({onSave}){
-  const [key,setKey]=useState('');const [err,setErr]=useState('');
-  return(
-    <div className="setup">
-      <div className="setup-card fade">
-        <div style={{fontSize:44,marginBottom:18}}>🏆</div>
-        <div className="setup-title">IPL 2026 <span>·</span> Playoff Tracker</div>
-        <p className="setup-sub">
-          Live standings, Monte Carlo qualification odds, and per-team analysis —
-          auto-updates after every match using Claude AI web search.
-          Checks every 30 min only while the tab is open and active.
-        </p>
-        <label className="lbl">Anthropic API Key</label>
-        <input type="password" placeholder="sk-ant-api03-…" value={key}
-          onChange={e=>setKey(e.target.value)}
-          onKeyDown={e=>e.key==='Enter'&&key.startsWith('sk-ant')&&onSave(key)}/>
-        {err&&<div style={{color:'#FF3B5E',fontSize:12,marginBottom:8}}>{err}</div>}
-        <p className="setup-note">
-          Get a free key at{' '}
-          <a href="https://console.anthropic.com" target="_blank"
-            style={{color:'var(--orange)'}}>console.anthropic.com</a>
-          {' '}· stored in your browser only, never sent elsewhere.
-        </p>
-        <button className="btn btn-p"
-          style={{width:'100%',justifyContent:'center',padding:'11px'}}
-          onClick={()=>{
-            if(!key.startsWith('sk-ant')){setErr('Key should start with sk-ant…');return;}
-            onSave(key);
-          }}>
-          Start tracking →
-        </button>
-        <div className="setup-feats">
-          <b>Features:</b> Live standings · Remaining fixtures ·
-          Monte Carlo qualification odds (5 000 simulations) ·
-          Full form arc + scenario analysis per team ·
-          Auto-refresh every 15 min via Claude AI
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function AnalysisTab({std,odds,rem}){
   const sorted=[...std].sort((a,b)=>b.pts-a.pts||b.nrr-a.nrr);
   const [sel,setSel]=useState('GT');
@@ -661,7 +597,6 @@ function AnalysisTab({std,odds,rem}){
 }
 
 function App(){
-  const [apiKey,setApiKey]=useState(()=>localStorage.getItem('ipl26_key')||'');
   const [std,setStd]=useState(()=>{
     try{const s=localStorage.getItem('ipl26_std');return s?JSON.parse(s):INIT_STD;}catch{return INIT_STD;}
   });
@@ -724,35 +659,19 @@ function App(){
   }
 
   rfRef.current=async function refresh(){
-    if(loading||!apiKey)return;
+    if(loading)return;
     setLoading(true);setMsg('');
     try{
       const lastId=Math.max(55,...Object.keys(done).map(Number));
-      const res=await fetch('https://api.anthropic.com/v1/messages',{
+      const res=await fetch('/api/refresh',{
         method:'POST',
-        headers:{
-          'Content-Type':'application/json',
-          'x-api-key':apiKey,
-          'anthropic-version':'2023-06-01',
-          'anthropic-dangerous-direct-browser-access':'true'
-        },
-        body:JSON.stringify({
-          model:'claude-sonnet-4-20250514',max_tokens:700,
-          tools:[{type:'web_search_20250305',name:'web_search'}],
-          messages:[{role:'user',content:
-            `Search for IPL 2026 T20 cricket match results. Find completed matches after Match ${lastId}. `+
-            `Schedule: M56 GT vs SRH May12, M57 RCB vs KKR May13, M58 PBKS vs MI May14, `+
-            `M59 LSG vs CSK May15, M60 KKR vs GT May16, M61 PBKS vs RCB May17, `+
-            `M62 DC vs RR May17, M63 CSK vs SRH May18, M64 RR vs LSG May19, `+
-            `M65 KKR vs MI May20, M66 GT vs CSK May21, M67 SRH vs RCB May22, `+
-            `M68 LSG vs PBKS May23, M69 MI vs RR May24, M70 KKR vs DC May24. `+
-            `Return ONLY a JSON array no other text: [{"id":56,"winner":"GT","margin":"5 wkts"}]. `+
-            `If no new results after M${lastId} return exactly: []`
-          }]
-        })
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({lastId})
       });
-      if(res.status===401){
-        setMsg('Invalid API key — click ⚙ Key to update');setMsgOk(false);setLoading(false);return;
+      if(!res.ok){
+        const e=await res.json().catch(()=>({}));
+        setMsg(e.error||'Server error — check Vercel function logs');
+        setMsgOk(false);setLoading(false);return;
       }
       const data=await res.json();
       const txt=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
@@ -779,10 +698,6 @@ function App(){
     }
     setLoading(false);
   };
-
-  if(!apiKey)return(
-    <Setup onSave={k=>{localStorage.setItem('ipl26_key',k);setApiKey(k);}}/>
-  );
 
   return(
     <div>
@@ -819,10 +734,6 @@ function App(){
                 setMsg('Reset to baseline');setMsgOk(false);
               }}>
               Reset
-            </button>
-            <button className="btn btn-g" style={{fontSize:11}}
-              onClick={()=>{localStorage.removeItem('ipl26_key');setApiKey('');}}>
-              ⚙ Key
             </button>
           </div>
         </div>
