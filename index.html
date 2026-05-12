@@ -465,6 +465,7 @@ function Setup({onSave}){
         <p className="setup-sub">
           Live standings, Monte Carlo qualification odds, and per-team analysis —
           auto-updates after every match using Claude AI web search.
+          Checks every 30 min only while the tab is open and active.
         </p>
         <label className="lbl">Anthropic API Key</label>
         <input type="password" placeholder="sk-ant-api03-…" value={key}
@@ -672,8 +673,10 @@ function App(){
   const [loading,setLoading]=useState(false);
   const [lu,setLu]=useState(()=>localStorage.getItem('ipl26_lu')||'');
   const [msg,setMsg]=useState('');const [msgOk,setMsgOk]=useState(true);
-  const [cd,setCd]=useState(900);
+  const INTERVAL=1800; // 30 min — saves ~50% API vs 15 min
+  const [cd,setCd]=useState(INTERVAL);
   const rfRef=useRef(null);
+  const pausedRef=useRef(false); // true when tab is hidden
 
   const rem=SCHED.filter(m=>!done[m.id]);
   const sorted=[...std].sort((a,b)=>b.pts-a.pts||b.nrr-a.nrr);
@@ -683,11 +686,21 @@ function App(){
     return()=>clearTimeout(tid);
   },[std.map(t=>t.pts).join(','),rem.length]);
 
+  // Pause timer when tab is hidden — no API calls in background tabs
   useEffect(()=>{
-    const iv=setInterval(()=>setCd(c=>{
-      if(c<=1){rfRef.current?.();return 900;}
-      return c-1;
-    }),1000);
+    const onVis=()=>{pausedRef.current=document.hidden;};
+    document.addEventListener('visibilitychange',onVis);
+    return()=>document.removeEventListener('visibilitychange',onVis);
+  },[]);
+
+  useEffect(()=>{
+    const iv=setInterval(()=>{
+      if(pausedRef.current)return; // tab is backgrounded — skip tick
+      setCd(c=>{
+        if(c<=1){rfRef.current?.();return INTERVAL;}
+        return c-1;
+      });
+    },1000);
     return()=>clearInterval(iv);
   },[]);
 
