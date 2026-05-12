@@ -673,7 +673,18 @@ function App(){
   const [loading,setLoading]=useState(false);
   const [lu,setLu]=useState(()=>localStorage.getItem('ipl26_lu')||'');
   const [msg,setMsg]=useState('');const [msgOk,setMsgOk]=useState(true);
-  const INTERVAL=1800; // 30 min — saves ~50% API vs 15 min
+  const INTERVAL=1800; // 30 min within match window
+  // IST = UTC+5:30. Match window: 7:00 PM–12:45 AM IST (19:00–00:45)
+  // Outside this window the points table cannot change — skip all calls.
+  function isMatchWindow(){
+    const utcMin=new Date().getUTCHours()*60+new Date().getUTCMinutes();
+    const istMin=(utcMin+330)%1440; // 330 = 5h30m
+    return istMin>=19*60||istMin<45; // 7 PM to 12:45 AM IST
+  }
+  function nextWindowMsg(){
+    // returns "opens at 7:00 PM IST" when outside window
+    return 'auto-check resumes at 7:00 PM IST';
+  }
   const [cd,setCd]=useState(INTERVAL);
   const rfRef=useRef(null);
   const pausedRef=useRef(false); // true when tab is hidden
@@ -696,6 +707,7 @@ function App(){
   useEffect(()=>{
     const iv=setInterval(()=>{
       if(pausedRef.current)return; // tab is backgrounded — skip tick
+      if(!isMatchWindow())return;  // outside 7 PM–12:45 AM IST — skip tick
       setCd(c=>{
         if(c<=1){rfRef.current?.();return INTERVAL;}
         return c-1;
@@ -761,7 +773,7 @@ function App(){
       const ts=new Date().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
       save(ns,nd,ts);
       setMsg(`${results.length} new result${results.length>1?'s':''} loaded — odds recalculated`);
-      setMsgOk(true);setCd(900);
+      setMsgOk(true);setCd(INTERVAL);
     }catch{
       setMsg('Fetch failed — will retry automatically');setMsgOk(false);
     }
@@ -782,11 +794,14 @@ function App(){
             <div>
               <div className="logo-title">IPL 2026 <span>·</span> Playoff Tracker</div>
               <div className="logo-sub">
-                <span className="ldot"/>
+                <span className="ldot" style={{background:isMatchWindow()?'var(--green)':'#FFB800'}}/>
                 <span>
                   {lu?`Updated ${lu}`:'Ready'}
-                  {' '}· next check in{' '}
-                  <b style={{color:'rgba(255,255,255,.85)'}}>{fmtCd(cd)}</b>
+                  {' · '}
+                  {isMatchWindow()
+                    ?<span>next check in <b style={{color:'rgba(255,255,255,.85)'}}>{fmtCd(cd)}</b></span>
+                    :<span style={{color:'#FFB800'}}>no matches now · {nextWindowMsg()}</span>
+                  }
                 </span>
               </div>
             </div>
