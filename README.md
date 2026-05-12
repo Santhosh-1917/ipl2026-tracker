@@ -30,49 +30,16 @@ Auto-updates after every match using Claude AI web search.
 
 ---
 
-## 🖥️ Preview
+## 🖥️ Screenshots
 
-<table>
-<tr>
-<td width="50%">
+### Qualification Odds — circular progress rings, team color accents
+![Qual Odds Tab](assets/screenshot-odds.png)
 
-**Standings Tab**
-- Ranked table with position badges
-- Team color-coded chips
-- Orange/gold qual% percentages
-- Dashed playoff cutoff line
+### Team Analysis — CSK deep dive with scenario table
+![Team Analysis CSK](assets/screenshot-analysis-csk.png)
 
-</td>
-<td width="50%">
-
-**Qual Odds Tab**
-- SVG circular progress rings
-- Color-coded: green → blue → amber → red
-- Team color top-bar accent
-- Click → full team analysis
-
-</td>
-</tr>
-<tr>
-<td>
-
-**Team Analysis**
-- Gradient hero card in team colors
-- Full match-by-match history grid
-- Points scenario table
-- Key threats highlighted
-
-</td>
-<td>
-
-**Fixtures**
-- Completed results with winner bold
-- Upcoming matches
-- Match IDs + dates
-
-</td>
-</tr>
-</table>
+### Team Analysis — KKR comeback story
+![Team Analysis KKR](assets/screenshot-analysis-kkr.png)
 
 ---
 
