@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>IPL 2026 · Playoff Tracker</title>
+<meta name="description" content="Live IPL 2026 playoff qualification tracker — standings, Monte Carlo odds, and team analysis.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#070B14;--bg2:#0C1120;--card:#0F1624;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);
+  --orange:#FF6B35;--gold:#FFB800;--green:#10D876;--red:#FF3B5E;
+  --text:#fff;--t2:rgba(255,255,255,.55);--t3:rgba(255,255,255,.28);
+}
+html,body{height:100%;}
+body{
+  font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);
+  line-height:1.5;overflow-x:hidden;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 5% 95%,rgba(255,107,53,.05) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 40% at 95% 5%,rgba(255,184,0,.05) 0%,transparent 60%);
+}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg2);}
+::-webkit-scrollbar-thumb{background:rgba(255,107,53,.35);border-radius:3px;}
+
+/* ── Header ── */
+.hdr{position:sticky;top:0;z-index:100;background:rgba(7,11,20,.93);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);}
+.hdr-in{max-width:960px;margin:0 auto;padding:12px 20px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:34px;height:34px;background:linear-gradient(135deg,#FF6B35,#FFB800);
+  border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;}
+.logo-title{font-size:15px;font-weight:800;letter-spacing:-.02em;}
+.logo-title span{color:var(--orange);}
+.logo-sub{font-size:10px;color:var(--t2);display:flex;align-items:center;gap:4px;margin-top:1px;}
+.ldot{width:5px;height:5px;border-radius:50%;background:var(--green);
+  animation:pulse 2s infinite;flex-shrink:0;}
+.hdr-actions{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:8px;
+  border:none;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;
+  transition:all .15s;white-space:nowrap;}
+.btn-p{background:linear-gradient(135deg,#FF6B35,#FF8C42);color:#fff;}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(255,107,53,.4);}
+.btn-p:disabled{opacity:.6;cursor:default;transform:none;box-shadow:none;}
+.btn-g{background:rgba(255,255,255,.07);color:rgba(255,255,255,.7);border:1px solid var(--border2);}
+.btn-g:hover{background:rgba(255,255,255,.12);}
+
+/* ── Hero ── */
+.hero{position:relative;overflow:hidden;
+  background:linear-gradient(140deg,#0A1628 0%,#120A1E 50%,#1A0D07 100%);
+  padding:48px 20px;border-bottom:1px solid var(--border);}
+.hero::before{content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%,rgba(255,107,53,.14) 0%,transparent 65%),
+    radial-gradient(ellipse 40% 50% at 90% 110%,rgba(255,184,0,.1) 0%,transparent 55%);}
+.hero-in{position:relative;max-width:960px;margin:0 auto;
+  display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;}
+.hero-eyebrow{font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.1em;color:var(--orange);margin-bottom:12px;}
+.hero-title{font-size:56px;font-weight:900;letter-spacing:-.04em;line-height:.95;margin-bottom:14px;}
+.hero-title em{font-style:normal;background:linear-gradient(135deg,#FF6B35,#FFB800);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:14px;color:var(--t2);line-height:1.65;max-width:380px;margin-bottom:22px;}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.hstat{background:rgba(255,255,255,.05);border:1px solid var(--border);
+  border-radius:10px;padding:13px 16px;}
+.hstat-val{font-size:26px;font-weight:800;}
+.hstat-lbl{font-size:10px;color:var(--t2);margin-top:2px;text-transform:uppercase;letter-spacing:.06em;}
+.hero-trophy{font-size:96px;line-height:1;
+  filter:drop-shadow(0 0 40px rgba(255,184,0,.4)) drop-shadow(0 0 80px rgba(255,107,53,.2));}
+
+/* ── Tabs ── */
+.tabs-nav{background:var(--bg);border-bottom:1px solid var(--border);
+  position:sticky;top:58px;z-index:90;}
+.tabs-in{max-width:960px;margin:0 auto;padding:0 20px;display:flex;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.tabs-in::-webkit-scrollbar{height:0;}
+.tab{padding:14px 18px;background:none;border:none;font-family:inherit;font-size:13px;
+  font-weight:500;color:var(--t2);cursor:pointer;position:relative;
+  transition:color .15s;white-space:nowrap;}
+.tab:hover{color:var(--text);}
+.tab.on{color:var(--orange);font-weight:700;}
+.tab.on::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,#FF6B35,#FFB800);border-radius:2px 2px 0 0;}
+
+/* ── Main ── */
+.main{padding:24px 20px 60px;max-width:960px;margin:0 auto;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+  overflow:hidden;margin-bottom:14px;}
+.sec-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--t3);margin-bottom:10px;}
+.toast{padding:10px 14px;border-radius:9px;font-size:12px;font-weight:600;margin-bottom:14px;}
+.tok{background:rgba(16,216,118,.1);color:var(--green);border:1px solid rgba(16,216,118,.2);}
+.terr{background:rgba(255,184,0,.08);color:#FFB800;border:1px solid rgba(255,184,0,.2);}
+
+/* ── Standings ── */
+table.st{width:100%;border-collapse:collapse;font-size:13px;}
+table.st thead tr{background:rgba(255,255,255,.03);}
+table.st th{padding:10px 6px;text-align:center;font-size:10px;font-weight:700;
+  color:var(--t3);white-space:nowrap;letter-spacing:.06em;text-transform:uppercase;}
+table.st th:first-child{padding-left:18px;text-align:center;}
+table.st th:nth-child(2){text-align:left;padding-left:8px;}
+table.st td{padding:12px 6px;text-align:center;border-top:1px solid var(--border);}
+table.st td:first-child{padding-left:18px;}
+table.st td:nth-child(2){text-align:left;padding-left:8px;}
+table.st tbody tr{transition:background .15s;cursor:pointer;}
+table.st tbody tr:hover{background:rgba(255,255,255,.025);}
+table.st tbody tr.cutoff{border-top:2px dashed rgba(255,107,53,.4) !important;}
+.pos-badge{width:22px;height:22px;border-radius:6px;display:inline-flex;
+  align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+.pos-top{background:rgba(255,107,53,.18);color:var(--orange);}
+.pos-out{background:rgba(255,255,255,.05);color:var(--t3);}
+.team-row{display:flex;align-items:center;gap:8px;}
+.team-chip{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;}
+.tn{font-weight:700;font-size:13px;}
+.tnote{font-size:10px;margin-top:1px;}
+.pts-big{font-size:17px;font-weight:800;}
+.nrr-v{font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;}
+.form-row{display:flex;gap:3px;justify-content:center;}
+.fdot{width:8px;height:8px;border-radius:50%;}
+.qpct{font-size:14px;font-weight:800;padding-right:16px;}
+.foot-note{padding:9px 18px;border-top:1px solid var(--border);font-size:11px;
+  color:var(--t3);display:flex;gap:12px;flex-wrap:wrap;background:rgba(255,255,255,.015);}
+.playoff-band{padding:7px;font-size:11px;color:rgba(255,107,53,.6);text-align:center;
+  border-top:1px solid rgba(255,107,53,.15);background:rgba(255,107,53,.04);}
+
+/* ── Fixtures ── */
+.fix-item{display:flex;align-items:center;gap:10px;padding:13px 18px;
+  border-top:1px solid var(--border);transition:background .15s;}
+.fix-item:hover{background:rgba(255,255,255,.02);}
+.fix-id{font-size:10px;color:var(--t3);font-weight:600;width:28px;flex-shrink:0;}
+.fix-teams{flex:1;display:flex;align-items:center;gap:8px;}
+.fix-t{font-weight:600;font-size:13px;}
+.fix-vs{color:var(--t3);font-size:11px;}
+.fix-dt{font-size:11px;color:var(--t2);white-space:nowrap;}
+.badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px;flex-shrink:0;}
+.badge-up{background:rgba(255,255,255,.07);color:var(--t2);}
+.badge-done{background:rgba(16,216,118,.12);color:var(--green);}
+
+/* ── Odds ── */
+.odds-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px;}
+@media(min-width:540px){.odds-grid{grid-template-columns:repeat(3,1fr);}}
+@media(min-width:720px){.odds-grid{grid-template-columns:repeat(4,1fr);}}
+.ocard{background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:16px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.ocard:hover{transform:translateY(-2px);border-color:var(--border2);
+  box-shadow:0 8px 30px rgba(0,0,0,.35);}
+.ocard-bar{position:absolute;top:0;left:0;right:0;height:3px;}
+.ocard-name{font-size:14px;font-weight:800;margin-bottom:3px;}
+.ocard-sub{font-size:10px;color:var(--t3);margin-bottom:12px;}
+.ocirc{position:relative;width:72px;height:72px;margin:0 auto 10px;}
+.ocirc-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+.opct{font-size:22px;font-weight:900;line-height:1;}
+.opct-unit{font-size:9px;color:var(--t3);font-weight:600;text-transform:uppercase;}
+.oform{display:flex;gap:3px;margin:8px 0 6px;}
+.oform-bar{flex:1;height:3px;border-radius:2px;}
+.opts-row{font-size:10px;color:var(--t2);}
+.odds-note{background:rgba(255,255,255,.03);border:1px solid var(--border);
+  border-radius:10px;padding:11px 14px;font-size:11px;color:var(--t3);line-height:1.7;}
+
+/* ── Analysis ── */
+.tsel{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:18px;}
+.tsbtn{padding:6px 12px;border-radius:8px;border:1px solid var(--border);
+  background:var(--card);color:var(--t2);cursor:pointer;font-family:inherit;
+  font-size:12px;font-weight:700;transition:all .15s;}
+.tsbtn:hover{border-color:var(--border2);color:var(--text);}
+.tsbtn.on{border-color:transparent;color:#fff;}
+.tsbtn.elim{opacity:.35;}
+.ahero{position:relative;overflow:hidden;border-radius:14px;padding:22px;
+  margin-bottom:14px;border:1px solid rgba(255,255,255,.1);}
+.ahero-bg{position:absolute;inset:0;}
+.ahero-in{position:relative;display:grid;grid-template-columns:1fr auto;
+  gap:16px;align-items:start;}
+.ahero-name{font-size:44px;font-weight:900;letter-spacing:-.04em;line-height:1;}
+.ahero-meta{font-size:12px;color:rgba(255,255,255,.45);margin-top:5px;line-height:1.75;}
+.ahero-chips{display:flex;gap:4px;flex-wrap:wrap;margin-top:10px;}
+.achip{font-size:10px;background:rgba(255,255,255,.1);padding:3px 8px;
+  border-radius:5px;color:rgba(255,255,255,.65);}
+.aprob{font-size:52px;font-weight:900;line-height:1;text-align:right;}
+.aprob-lbl{font-size:11px;font-weight:700;text-align:right;margin-top:3px;}
+.aprob-sub{font-size:10px;color:rgba(255,255,255,.3);text-align:right;margin-top:3px;}
+.aprob-bar{height:4px;background:rgba(255,255,255,.1);border-radius:2px;
+  margin-top:8px;width:90px;margin-left:auto;overflow:hidden;}
+.aprob-fill{height:100%;border-radius:2px;}
+.stat3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
+.sbox{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 14px;}
+.sbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;}
+.sbv{font-size:15px;font-weight:700;}
+.sbs{font-size:10px;color:var(--t3);margin-top:3px;}
+.hist-grid{display:flex;gap:5px;flex-wrap:wrap;}
+.hist-item{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.hist-badge{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;
+  justify-content:center;font-size:11px;font-weight:800;}
+.hist-opp{font-size:9px;color:var(--t3);}
+table.scen{width:100%;border-collapse:collapse;font-size:12px;}
+table.scen th{padding:9px 12px;text-align:left;font-size:10px;font-weight:700;
+  color:var(--t3);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);}
+table.scen th:not(:first-child){text-align:right;}
+table.scen td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+table.scen tr:last-child td{border-bottom:none;}
+table.scen td:not(:first-child){text-align:right;}
+.mbar-w{width:52px;height:4px;background:rgba(255,255,255,.08);border-radius:3px;
+  display:inline-block;vertical-align:middle;margin-right:5px;overflow:hidden;}
+.mbar-f{height:100%;border-radius:3px;}
+
+/* ── Setup ── */
+.setup{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:20px;background:var(--bg);}
+.setup-card{background:var(--card);border:1px solid var(--border);border-radius:20px;
+  padding:40px;max-width:450px;width:100%;position:relative;overflow:hidden;}
+.setup-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,#FF6B35,#FFB800,#FF6B35);}
+.setup-title{font-size:26px;font-weight:900;letter-spacing:-.03em;margin-bottom:5px;}
+.setup-title span{color:var(--orange);}
+.setup-sub{font-size:13px;color:var(--t2);margin:8px 0 26px;line-height:1.65;}
+.lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--t3);margin-bottom:7px;display:block;}
+input[type=password]{width:100%;padding:11px 14px;border-radius:10px;
+  border:1px solid var(--border2);background:rgba(255,255,255,.05);
+  font-family:inherit;font-size:13px;color:var(--text);outline:none;
+  transition:border-color .15s;margin-bottom:8px;}
+input[type=password]:focus{border-color:var(--orange);background:rgba(255,107,53,.05);}
+input[type=password]::placeholder{color:var(--t3);}
+.setup-note{font-size:11px;color:var(--t3);line-height:1.6;margin-bottom:18px;}
+.setup-feats{background:rgba(255,255,255,.03);border:1px solid var(--border);
+  border-radius:10px;padding:13px 14px;font-size:11px;color:var(--t2);
+  line-height:1.9;margin-top:14px;}
+
+/* ── Animations ── */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.spin{animation:spin .7s linear infinite;display:inline-block;}
+.fade{animation:fade .22s ease-out;}
+
+/* ── Responsive ── */
+@media(max-width:600px){
+  .hero-in{grid-template-columns:1fr;}
+  .hero-trophy{display:none;}
+  .hero-title{font-size:38px;}
+  .hero-stats{grid-template-columns:1fr 1fr;}
+  .stat3{grid-template-columns:1fr 1fr;}
+  .ahero-in{grid-template-columns:1fr;}
+  .aprob{font-size:38px;text-align:left;}
+  .aprob-lbl,.aprob-sub{text-align:left;}
+  .aprob-bar{margin-left:0;}
+}
+@media(max-width:400px){
+  .hero-stats{grid-template-columns:1fr;}
+  .hstat-val{font-size:22px;}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef}=React;
+
+const TC={
+  RCB: {p:'#CC0000',bg:'rgba(204,0,0,0.2)',t:'#FF6666'},
+  SRH: {p:'#FF6B00',bg:'rgba(255,107,0,0.2)',t:'#FF9944'},
+  GT:  {p:'#294EA8',bg:'rgba(41,78,168,0.2)',t:'#88AAFF'},
+  PBKS:{p:'#D71920',bg:'rgba(215,25,32,0.2)',t:'#FF6666'},
+  CSK: {p:'#FDB913',bg:'rgba(253,185,19,0.2)',t:'#FDB913'},
+  RR:  {p:'#E91E8C',bg:'rgba(233,30,140,0.2)',t:'#FF66CC'},
+  DC:  {p:'#0057A8',bg:'rgba(0,87,168,0.2)',t:'#66AAFF'},
+  KKR: {p:'#6B2FA0',bg:'rgba(107,47,160,0.2)',t:'#CC99FF'},
+  MI:  {p:'#004B8D',bg:'rgba(0,75,141,0.2)',t:'#4488FF'},
+  LSG: {p:'#A72056',bg:'rgba(167,32,86,0.2)',t:'#FF66AA'},
+};
+
+const INIT_STD=[
+  {name:'RCB',m:11,w:7,l:4,nr:0,pts:14,nrr:1.103,form:[1,1,0,0,1]},
+  {name:'SRH',m:11,w:7,l:4,nr:0,pts:14,nrr:0.737,form:[1,1,1,0,1]},
+  {name:'GT', m:11,w:7,l:4,nr:0,pts:14,nrr:0.228,form:[0,1,1,1,1]},
+  {name:'PBKS',m:11,w:6,l:4,nr:1,pts:13,nrr:0.428,form:[1,0,0,0,0]},
+  {name:'CSK',m:11,w:6,l:5,nr:0,pts:12,nrr:0.185,form:[0,1,1,1,1]},
+  {name:'RR', m:11,w:6,l:5,nr:0,pts:12,nrr:0.082,form:[1,0,1,0,0]},
+  {name:'DC', m:12,w:5,l:7,nr:0,pts:10,nrr:-0.993,form:[1,0,0,0,1]},
+  {name:'KKR',m:10,w:4,l:5,nr:1,pts:9,nrr:-0.169,form:[0,1,1,1,1]},
+  {name:'MI', m:11,w:3,l:8,nr:0,pts:6,nrr:-0.585,form:[0,0,1,0,0]},
+  {name:'LSG',m:11,w:3,l:8,nr:0,pts:6,nrr:-0.907,form:[0,1,0,1,0]},
+];
+
+const SCHED=[
+  {id:56,t1:'GT',t2:'SRH',date:'May 12'},{id:57,t1:'RCB',t2:'KKR',date:'May 13'},
+  {id:58,t1:'PBKS',t2:'MI',date:'May 14'},{id:59,t1:'LSG',t2:'CSK',date:'May 15'},
+  {id:60,t1:'KKR',t2:'GT',date:'May 16'},{id:61,t1:'PBKS',t2:'RCB',date:'May 17'},
+  {id:62,t1:'DC',t2:'RR',date:'May 17'},{id:63,t1:'CSK',t2:'SRH',date:'May 18'},
+  {id:64,t1:'RR',t2:'LSG',date:'May 19'},{id:65,t1:'KKR',t2:'MI',date:'May 20'},
+  {id:66,t1:'GT',t2:'CSK',date:'May 21'},{id:67,t1:'SRH',t2:'RCB',date:'May 22'},
+  {id:68,t1:'LSG',t2:'PBKS',date:'May 23'},{id:69,t1:'MI',t2:'RR',date:'May 24'},
+  {id:70,t1:'KKR',t2:'DC',date:'May 24'},
+];
+
+const TEAMS=new Set(INIT_STD.map(t=>t.name));
+
+const NOTES={
+  GT:  ['↑','Won last 4 · Peaking'],
+  SRH: ['↑','Won 7 of last 8'],
+  RCB: ['→','Steady · Best NRR +1.103'],
+  PBKS:['↓','Lost 4 in a row'],
+  CSK: ['↑','0-3 start → 4W last 5'],
+  RR:  ['↓','4-0 start → fading'],
+  DC:  ['→','Max 14 pts · Near out'],
+  KKR: ['↑','0-5 → 4W streak'],
+  MI:  ['−','Eliminated'],
+  LSG: ['−','Eliminated'],
+};
+
+const HIST={
+  RCB: {g:[1,1,0,1,1,0,1,1,0,0,1],o:['SRH','CSK','RR','MI','LSG','DC','GT','DC','GT','LSG','MI']},
+  SRH: {g:[0,1,0,0,1,1,1,1,1,0,1],o:['RCB','KKR','LSG','PBKS','RR','CSK','DC','RR','MI','KKR','PBKS']},
+  GT:  {g:[0,0,1,1,1,0,0,1,1,1,1],o:['PBKS','RR','DC','LSG','KKR','MI','RCB','CSK','RCB','PBKS','RR']},
+  PBKS:{g:[1,1,2,1,1,1,1,0,0,0,0],o:['GT','CSK','KKR','SRH','MI','LSG','DC','RR','GT','SRH','DC']},
+  CSK: {g:[0,0,0,1,1,0,1,0,1,1,1],o:['RR','PBKS','RCB','DC','KKR','SRH','MI','GT','MI','DC','LSG']},
+  RR:  {g:[1,1,1,1,0,0,1,0,1,0,0],o:['CSK','GT','MI','RCB','SRH','KKR','LSG','SRH','PBKS','DC','GT']},
+  KKR: {g:[0,0,2,0,0,0,1,1,1,1],o:['MI','SRH','PBKS','LSG','CSK','GT','RR','LSG','SRH','DC']},
+  DC:  {g:[1,1,0,0,1,0,0,0,1,0,0,1],o:['LSG','MI','GT','CSK','RCB','SRH','PBKS','RCB','RR','CSK','KKR','PBKS']},
+  MI:  {g:[1,0,0,0,0,1,0,0,0,1,0],o:['KKR','DC','RR','RCB','PBKS','GT','CSK','SRH','CSK','LSG','RCB']},
+  LSG: {g:[0,1,1,0,0,0,0,0,0,1,0],o:['DC','SRH','KKR','GT','RCB','PBKS','RR','KKR','MI','RCB','CSK']},
+};
+
+const ANA={
+  GT:{prob:83,trend:'↑',early:'2W–3L',recent:'4W–1L',
+    fx:['vs SRH (M56)','vs KKR (M60)','vs CSK (M66)'],
+    threats:['SRH','RCB'],
+    formStory:'Started slow losing to PBKS and RR in first two games. Then won 3 in a row, hit a mid-season blip losing to MI and RCB, and since then has been unstoppable. Beat CSK by 8 wickets, RR by 77 runs. Currently the most dominant team in the tournament.',
+    analysis:'Best schedule of the top 3 — KKR and CSK are both beatable. Even in the worst case (loses all 3, stays at 14 pts) still has a 20% shot because NRR +0.228 beats CSK and RR in a tiebreaker. At 18 pts (2 wins), qualification is near-certain at 95%. GT controls their own destiny as well as any team in the league.',
+    scen:[{l:'Win all 3 → 20 pts',f:20,q:99},{l:'Win 2 → 18 pts',f:43,q:95},{l:'Win 1 → 16 pts',f:30,q:58},{l:'Win 0 → 14 pts',f:7,q:20}]},
+  SRH:{prob:76,trend:'↑',early:'2W–3L',recent:'4W–1L',
+    fx:['vs GT (M56)','vs CSK (M63)','vs RCB (M67)'],
+    threats:['GT','RCB','PBKS'],
+    formStory:'Started 2-3 and looked in genuine trouble. Something clicked around Match 21 — won 7 of last 8. Beat MI by 6 wickets, DC by 47 runs, PBKS by 33 runs. Only recent blip was a 7-wicket loss to KKR (M45).',
+    analysis:'Toughest schedule of the top 3 — plays GT tomorrow, then CSK (in form), then RCB. Despite hot form, the fixture list means they drop points in more scenarios than GT or RCB. NRR +0.737 is excellent and wins almost every tiebreaker. At 18 pts qualification probability is 91%.',
+    scen:[{l:'Win all 3 → 20 pts',f:14,q:99},{l:'Win 2 → 18 pts',f:39,q:91},{l:'Win 1 → 16 pts',f:36,q:53},{l:'Win 0 → 14 pts',f:11,q:16}]},
+  RCB:{prob:73,trend:'→',early:'4W–1L',recent:'3W–2L',
+    fx:['vs KKR (M57)','vs PBKS (M61)','vs SRH (M67)'],
+    threats:['SRH','GT','PBKS'],
+    formStory:'Best early form of any team — 4-1 in first 5. Two surprising losses to DC (M26) and LSG via DLS (M50) showed vulnerability against weaker opposition. Won by 2 wickets vs MI — composed but not dominant.',
+    analysis:'NRR +1.103 is the tournament\'s best — they win virtually every tiebreaker at the same points total. This makes a stumble to 16 pts still qualify them in ~55% of scenarios. KKR game (M57) should be comfortable. PBKS (M61) is genuinely 50-50 given their form collapse. SRH (M67) is tough but RCB has historical edge.',
+    scen:[{l:'Win all 3 → 20 pts',f:15,q:99},{l:'Win 2 → 18 pts',f:40,q:93},{l:'Win 1 → 16 pts',f:35,q:55},{l:'Win 0 → 14 pts',f:10,q:18}]},
+  PBKS:{prob:65,trend:'↓',early:'5W–0L (+1NR)',recent:'1W–4L',
+    fx:['vs MI (M58)','vs RCB (M61)','vs LSG (M68)'],
+    threats:['CSK','RR','KKR (form)'],
+    formStory:'Won 6 in a row including the NR vs KKR and looked like a guaranteed qualifier. Then lost 4 in a row — to RR, GT, SRH, and near-eliminated DC. Serious confidence crisis at the worst possible time.',
+    analysis:'Two of three remaining games are against eliminated teams (MI and LSG) — 2+ wins is the realistic baseline. At 17 pts (2 wins) they qualify in 88% of scenarios. The danger is form — a team this out of sorts can lose to anyone. The MI game on May 14 is a critical litmus test.',
+    scen:[{l:'Win all 3 → 19 pts',f:29,q:99},{l:'Win 2 → 17 pts',f:50,q:88},{l:'Win 1 → 15 pts',f:19,q:32},{l:'Win 0 → 13 pts',f:2,q:8}]},
+  CSK:{prob:42,trend:'↑',early:'2W–3L',recent:'4W–1L',
+    fx:['vs LSG (M59)','vs SRH (M63)','vs GT (M66)'],
+    threats:['PBKS (pts)','SRH (NRR)','GT (NRR)','RR (schedule)'],
+    formStory:'Started 0-3 and looked dead in the water. Beat MI by 103 runs, DC by 8 wickets, and LSG by 5 wickets. Now won 4 of last 5. The timing could not be better.',
+    analysis:'At 18 pts (win all 3): qualifies ~95%. At 16 pts (win 2 of 3): coin flip at 45-55% depending on NRR. Win big to boost NRR above +0.228 (GT) — if CSK ties GT at 16 pts with better NRR, they qualify instead. Hardest remaining schedule of any contender.',
+    scen:[{l:'Win all 3 → 18 pts',f:14,q:95},{l:'Win 2 → 16 pts (strong NRR)',f:41,q:55},{l:'Win 2 → 16 pts (avg NRR)',f:41,q:45},{l:'Win 1 → 14 pts',f:37,q:10},{l:'Win 0 → 12 pts',f:8,q:2}]},
+  RR:{prob:48,trend:'↓',early:'4W–1L',recent:'2W–3L',
+    fx:['vs DC (M62)','vs LSG (M64)','vs MI (M69)'],
+    threats:['CSK (NRR at 16)','PBKS','GT'],
+    formStory:'Brilliant 4-0 start made them look like a top-2 side. Form has since dropped badly — lost to SRH by 57 runs, DC in a surprise, and GT by 77 runs. Lost 3 of last 5.',
+    analysis:'Easiest remaining schedule — DC (struggling), LSG (eliminated), MI (eliminated). At 18 pts (win all 3): qualifies 88%. At 16 pts (2 wins): coin flip at 48%. Key detail: if RR and CSK both reach 16 pts, CSK qualifies ahead on NRR (+0.185 vs +0.082). RR needs 18 pts to be safe from CSK.',
+    scen:[{l:'Win all 3 → 18 pts',f:36,q:88},{l:'Win 2 → 16 pts',f:45,q:48},{l:'Win 1 → 14 pts',f:17,q:12},{l:'Win 0 → 12 pts',f:2,q:3}]},
+  KKR:{prob:13,trend:'↑',early:'0W–5L (+1NR)',recent:'4W–0L',
+    fx:['vs RCB (M57)','vs GT (M60)','vs MI (M65)','vs DC (M70)'],
+    threats:['RCB','GT','SRH','PBKS'],
+    formStory:'Lost their first 5 league games and were written off. Then won 4 in a row — including upsetting SRH and beating DC by 8 wickets. The turnaround is dramatic but the 0-5 start has left them needing a perfect finish.',
+    analysis:'Needs all 4 wins to reach 17 pts — the minimum that gives a genuine shot at 55%. Plays RCB (M57) and GT (M60) first — two of the top-3 teams. Even at 17 pts, needs at least three top teams to stumble. Mathematically alive, practically a long shot.',
+    scen:[{l:'Win all 4 → 17 pts',f:5,q:55},{l:'Win 3 → 15 pts',f:23,q:20},{l:'Win 2 → 13 pts',f:40,q:4},{l:'Win 1 → 11 pts',f:27,q:1},{l:'Win 0 → 9 pts',f:5,q:0}]},
+  DC:{prob:2,trend:'→',early:'3W–2L',recent:'2W–3L',
+    fx:['vs RR (M62)','vs KKR (M70)'],
+    threats:['Every qualified team (NRR blocks)'],
+    formStory:'Inconsistent all season — beat RCB and RR but lost to PBKS, CSK, and KKR. Today\'s win vs PBKS was a genuine upset but changes nothing mathematically.',
+    analysis:'Maximum possible is 14 pts, the exact floor of RCB, SRH, and GT. Even with both wins, DC needs all three top teams to lose every remaining game — and NRR -0.993 (worst in the tournament) loses every tiebreaker. Effectively eliminated. The focus now is on playing spoiler.',
+    scen:[{l:'Win both → 14 pts',f:20,q:5},{l:'Win one → 12 pts',f:50,q:1},{l:'Win none → 10 pts',f:30,q:0}]},
+  MI:{prob:0,trend:'−',early:'1W–4L',recent:'2W–4L',
+    fx:['vs PBKS (M58)','vs KKR (M65)','vs RR (M69)'],
+    threats:['N/A — Eliminated'],
+    formStory:'Won only 3 of 11 games. One of two eliminated teams alongside LSG.',
+    analysis:'Mathematically eliminated. MI\'s remaining games carry huge playoff implications: beating PBKS (M58) deepens their crisis, beating KKR (M65) kills their miracle run, and beating RR (M69) could knock RR out of contention. MI and LSG are the kingmakers of this playoff race.',
+    scen:[{l:'Mathematically eliminated',f:100,q:0}]},
+  LSG:{prob:0,trend:'−',early:'2W–3L',recent:'1W–5L',
+    fx:['vs CSK (M59)','vs RR (M64)','vs PBKS (M68)'],
+    threats:['N/A — Eliminated'],
+    formStory:'Won only 3 of 11 games. Eliminated alongside MI.',
+    analysis:'Mathematically eliminated. Like MI, LSG\'s remaining games matter enormously — a win vs CSK (M59) dents CSK\'s momentum, a win vs RR (M64) could eliminate RR from contention, and a win vs PBKS (M68) accelerates PBKS\'s crisis.',
+    scen:[{l:'Mathematically eliminated',f:100,q:0}]},
+};
+
+const fs=f=>f.reduce((a,b)=>a+b,0);
+const wp=(a,b)=>{
+  const z=(a.pts-b.pts)*.07+(a.nrr-b.nrr)*.18+(fs(a.form)-fs(b.form))*.09;
+  return Math.min(.83,Math.max(.17,1/(1+Math.exp(-z))));
+};
+
+function runMC(std,sched,n=5000){
+  const c={};std.forEach(t=>c[t.name]=0);
+  for(let i=0;i<n;i++){
+    const s=std.map(t=>({...t}));
+    for(const m of sched){
+      const a=s.find(t=>t.name===m.t1),b=s.find(t=>t.name===m.t2);
+      if(!a||!b)continue;
+      Math.random()<wp(a,b)?(a.pts+=2,a.w++):(b.pts+=2,b.w++);
+      a.m++;b.m++;
+    }
+    s.sort((a,b)=>b.pts-a.pts||b.nrr-a.nrr);
+    s.slice(0,4).forEach(t=>c[t.name]++);
+  }
+  return Object.fromEntries(Object.entries(c).map(([k,v])=>[k,Math.round(v/n*100)]));
+}
+
+function applyRes(std,id,winner){
+  const m=SCHED.find(x=>x.id===id);if(!m)return std;
+  const loser=m.t1===winner?m.t2:m.t1;
+  return std.map(t=>{
+    if(t.name===winner)return{...t,m:t.m+1,w:t.w+1,pts:t.pts+2,form:[...t.form.slice(1),1]};
+    if(t.name===loser) return{...t,m:t.m+1,l:t.l+1,form:[...t.form.slice(1),0]};
+    return t;
+  });
+}
+
+const pc=p=>p>=70?'#10D876':p>=45?'#3B82F6':p>=15?'#FFB800':'#FF3B5E';
+const pl=p=>p>=70?'Very likely':p>=45?'In the fight':p>=15?'Long shot':'Near out';
+const nc=tr=>tr==='↑'?'#10D876':tr==='↓'?'#FF3B5E':'#6B7280';
+const nr=v=>(v>0?'+':'')+v.toFixed(3);
+const fmtCd=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+
+function CircleProgress({pct,color,size=72,stroke=5}){
+  const r=(size-stroke)/2;
+  const circ=2*Math.PI*r;
+  const dash=(pct/100)*circ;
+  return(
+    <svg width={size} height={size} style={{transform:'rotate(-90deg)',display:'block'}}>
+      <circle cx={size/2} cy={size/2} r={r} fill="none"
+        stroke="rgba(255,255,255,0.07)" strokeWidth={stroke}/>
+      <circle cx={size/2} cy={size/2} r={r} fill="none"
+        stroke={color} strokeWidth={stroke}
+        strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
+        style={{transition:'stroke-dasharray 0.6s ease'}}/>
+    </svg>
+  );
+}
+
+function Setup({onSave}){
+  const [key,setKey]=useState('');const [err,setErr]=useState('');
+  return(
+    <div className="setup">
+      <div className="setup-card fade">
+        <div style={{fontSize:44,marginBottom:18}}>🏆</div>
+        <div className="setup-title">IPL 2026 <span>·</span> Playoff Tracker</div>
+        <p className="setup-sub">
+          Live standings, Monte Carlo qualification odds, and per-team analysis —
+          auto-updates after every match using Claude AI web search.
+        </p>
+        <label className="lbl">Anthropic API Key</label>
+        <input type="password" placeholder="sk-ant-api03-…" value={key}
+          onChange={e=>setKey(e.target.value)}
+          onKeyDown={e=>e.key==='Enter'&&key.startsWith('sk-ant')&&onSave(key)}/>
+        {err&&<div style={{color:'#FF3B5E',fontSize:12,marginBottom:8}}>{err}</div>}
+        <p className="setup-note">
+          Get a free key at{' '}
+          <a href="https://console.anthropic.com" target="_blank"
+            style={{color:'var(--orange)'}}>console.anthropic.com</a>
+          {' '}· stored in your browser only, never sent elsewhere.
+        </p>
+        <button className="btn btn-p"
+          style={{width:'100%',justifyContent:'center',padding:'11px'}}
+          onClick={()=>{
+            if(!key.startsWith('sk-ant')){setErr('Key should start with sk-ant…');return;}
+            onSave(key);
+          }}>
+          Start tracking →
+        </button>
+        <div className="setup-feats">
+          <b>Features:</b> Live standings · Remaining fixtures ·
+          Monte Carlo qualification odds (5 000 simulations) ·
+          Full form arc + scenario analysis per team ·
+          Auto-refresh every 15 min via Claude AI
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AnalysisTab({std,odds,rem}){
+  const sorted=[...std].sort((a,b)=>b.pts-a.pts||b.nrr-a.nrr);
+  const [sel,setSel]=useState('GT');
+  const t=std.find(x=>x.name===sel)||INIT_STD[0];
+  const a=ANA[sel]||ANA.GT;
+  const hist=HIST[sel]||{g:[],o:[]};
+  const q=odds[sel]??a.prob;
+  const c=pc(q);
+  const gLeft=rem.filter(m=>m.t1===sel||m.t2===sel).length;
+  const tc=TC[sel]||TC.RCB;
+
+  return(
+    <div className="fade">
+      <div className="sec-lbl">Select team</div>
+      <div className="tsel">
+        {sorted.map(x=>{
+          const xc=TC[x.name];
+          return(
+            <button key={x.name}
+              className={`tsbtn${sel===x.name?' on':''}${x.pts<=6?' elim':''}`}
+              style={sel===x.name?{background:xc?.p,borderColor:xc?.p}:{}}
+              onClick={()=>setSel(x.name)}>
+              {x.name}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Hero card */}
+      <div className="ahero">
+        <div className="ahero-bg"
+          style={{background:`linear-gradient(135deg, ${tc.bg} 0%, rgba(10,14,26,0.98) 100%)`}}/>
+        <div className="ahero-in">
+          <div>
+            <div className="ahero-name" style={{color:tc.t}}>{sel}</div>
+            <div className="ahero-meta">
+              {t.pts} pts · {t.m} played · {gLeft} games remaining<br/>
+              NRR {nr(t.nrr)} · {a.trend==='−'?'Eliminated ✕':'Active contender'}
+            </div>
+            <div className="ahero-chips">
+              {a.fx.map((f,i)=>(<span key={i} className="achip">{f}</span>))}
+            </div>
+          </div>
+          <div>
+            <div className="aprob" style={{color:c}}>{q}%</div>
+            <div className="aprob-lbl" style={{color:c}}>{pl(q)}</div>
+            <div className="aprob-sub">qual. probability</div>
+            <div className="aprob-bar">
+              <div className="aprob-fill" style={{width:`${q}%`,background:c}}/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats row */}
+      <div className="stat3">
+        <div className="sbox">
+          <div className="sbl">Early season</div>
+          <div className="sbv">{a.early}</div>
+          <div className="sbs">First 5–6 games</div>
+        </div>
+        <div className="sbox">
+          <div className="sbl">Recent form</div>
+          <div className="sbv">{a.recent}</div>
+          <div className="sbs">Last 5–6 games</div>
+        </div>
+        <div className="sbox">
+          <div className="sbl">Last 5 results</div>
+          <div style={{display:'flex',gap:4,marginTop:5}}>
+            {t.form.map((r,i)=>(
+              <span key={i} style={{width:14,height:14,borderRadius:'50%',
+                background:r?'#10D876':'#FF3B5E',display:'inline-block'}}/>
+            ))}
+          </div>
+          <div className="sbs">{t.form.filter(r=>r).length}W in last 5</div>
+        </div>
+      </div>
+
+      {/* Full history */}
+      <div className="card" style={{padding:'16px'}}>
+        <div className="sec-lbl" style={{marginBottom:12}}>Full season — all results</div>
+        <div className="hist-grid">
+          {hist.g.map((r,i)=>(
+            <div key={i} className="hist-item"
+              title={`${r===2?'No Result':r?'WIN':'LOSS'} vs ${hist.o[i]}`}>
+              <div className="hist-badge" style={{
+                background:r===2?'rgba(255,255,255,0.08)':r?'rgba(16,216,118,0.2)':'rgba(255,59,94,0.2)',
+                color:r===2?'#9CA3AF':r?'#10D876':'#FF3B5E'
+              }}>
+                {r===2?'NR':r?'W':'L'}
+              </div>
+              <div className="hist-opp">{hist.o[i]}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{marginTop:14,paddingTop:12,borderTop:'1px solid var(--border)',
+          fontSize:13,color:'rgba(255,255,255,.65)',lineHeight:1.8}}>
+          {a.formStory}
+        </div>
+      </div>
+
+      {/* Scenario table */}
+      <div className="card">
+        <div style={{padding:'14px 16px 0'}}>
+          <div className="sec-lbl" style={{marginBottom:2}}>Points scenario analysis</div>
+          <div style={{fontSize:11,color:'var(--t3)',marginBottom:12}}>
+            Likelihood of reaching each total · qualification probability at that total
+          </div>
+        </div>
+        <table className="scen">
+          <thead><tr>
+            <th>Scenario</th><th>Likelihood</th><th>Qual. chance</th>
+          </tr></thead>
+          <tbody>
+            {a.scen.map((s,i)=>{
+              const sc=pc(s.q);
+              return(
+                <tr key={i}>
+                  <td style={{fontWeight:500,color:'rgba(255,255,255,.8)',fontSize:13}}>{s.l}</td>
+                  <td>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
+                      <div className="mbar-w">
+                        <div className="mbar-f" style={{width:`${s.f}%`,background:'rgba(255,255,255,0.2)'}}/>
+                      </div>
+                      <span style={{color:'var(--t2)',minWidth:28,textAlign:'right'}}>{s.f}%</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'flex-end',gap:5}}>
+                      <div className="mbar-w">
+                        <div className="mbar-f" style={{width:`${s.q}%`,background:sc}}/>
+                      </div>
+                      <span style={{color:sc,fontWeight:700,minWidth:28,textAlign:'right'}}>{s.q}%</span>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Analysis text */}
+      <div className="card" style={{padding:'16px'}}>
+        <div className="sec-lbl" style={{marginBottom:10}}>Detailed qualification analysis</div>
+        <p style={{fontSize:13,color:'rgba(255,255,255,.7)',lineHeight:1.85}}>{a.analysis}</p>
+        <div style={{marginTop:14,paddingTop:12,borderTop:'1px solid var(--border)'}}>
+          <div className="sec-lbl" style={{marginBottom:8}}>Key threats to their playoff spot</div>
+          <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+            {a.threats.map((th,i)=>(
+              <span key={i} style={{fontSize:11,fontWeight:600,padding:'4px 10px',
+                borderRadius:6,background:'rgba(255,184,0,0.1)',color:'#FFB800',
+                border:'1px solid rgba(255,184,0,0.2)'}}>
+                {th}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App(){
+  const [apiKey,setApiKey]=useState(()=>localStorage.getItem('ipl26_key')||'');
+  const [std,setStd]=useState(()=>{
+    try{const s=localStorage.getItem('ipl26_std');return s?JSON.parse(s):INIT_STD;}catch{return INIT_STD;}
+  });
+  const [done,setDone]=useState(()=>{
+    try{const d=localStorage.getItem('ipl26_done');return d?JSON.parse(d):{};}catch{return {};}
+  });
+  const [odds,setOdds]=useState({});
+  const [tab,setTab]=useState('table');
+  const [loading,setLoading]=useState(false);
+  const [lu,setLu]=useState(()=>localStorage.getItem('ipl26_lu')||'');
+  const [msg,setMsg]=useState('');const [msgOk,setMsgOk]=useState(true);
+  const [cd,setCd]=useState(900);
+  const rfRef=useRef(null);
+
+  const rem=SCHED.filter(m=>!done[m.id]);
+  const sorted=[...std].sort((a,b)=>b.pts-a.pts||b.nrr-a.nrr);
+
+  useEffect(()=>{
+    const tid=setTimeout(()=>setOdds(runMC(std,rem)),30);
+    return()=>clearTimeout(tid);
+  },[std.map(t=>t.pts).join(','),rem.length]);
+
+  useEffect(()=>{
+    const iv=setInterval(()=>setCd(c=>{
+      if(c<=1){rfRef.current?.();return 900;}
+      return c-1;
+    }),1000);
+    return()=>clearInterval(iv);
+  },[]);
+
+  function save(ns,nd,ts){
+    localStorage.setItem('ipl26_std',JSON.stringify(ns));
+    localStorage.setItem('ipl26_done',JSON.stringify(nd));
+    localStorage.setItem('ipl26_lu',ts);
+    setLu(ts);
+  }
+
+  rfRef.current=async function refresh(){
+    if(loading||!apiKey)return;
+    setLoading(true);setMsg('');
+    try{
+      const lastId=Math.max(55,...Object.keys(done).map(Number));
+      const res=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'x-api-key':apiKey,
+          'anthropic-version':'2023-06-01',
+          'anthropic-dangerous-direct-browser-access':'true'
+        },
+        body:JSON.stringify({
+          model:'claude-sonnet-4-20250514',max_tokens:700,
+          tools:[{type:'web_search_20250305',name:'web_search'}],
+          messages:[{role:'user',content:
+            `Search for IPL 2026 T20 cricket match results. Find completed matches after Match ${lastId}. `+
+            `Schedule: M56 GT vs SRH May12, M57 RCB vs KKR May13, M58 PBKS vs MI May14, `+
+            `M59 LSG vs CSK May15, M60 KKR vs GT May16, M61 PBKS vs RCB May17, `+
+            `M62 DC vs RR May17, M63 CSK vs SRH May18, M64 RR vs LSG May19, `+
+            `M65 KKR vs MI May20, M66 GT vs CSK May21, M67 SRH vs RCB May22, `+
+            `M68 LSG vs PBKS May23, M69 MI vs RR May24, M70 KKR vs DC May24. `+
+            `Return ONLY a JSON array no other text: [{"id":56,"winner":"GT","margin":"5 wkts"}]. `+
+            `If no new results after M${lastId} return exactly: []`
+          }]
+        })
+      });
+      if(res.status===401){
+        setMsg('Invalid API key — click ⚙ Key to update');setMsgOk(false);setLoading(false);return;
+      }
+      const data=await res.json();
+      const txt=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+      const jm=txt.match(/\[[\s\S]*?\]/);
+      if(!jm)throw new Error('');
+      const results=JSON.parse(jm[0]);
+      if(!results.length){
+        setMsg('Already up to date — no new results');setMsgOk(false);setLoading(false);return;
+      }
+      let ns=[...std];const nd={...done};
+      for(const x of results){
+        if(!nd[x.id]&&x.winner&&TEAMS.has(x.winner)){
+          ns=applyRes(ns,x.id,x.winner);
+          nd[x.id]={winner:x.winner,margin:x.margin||'won'};
+        }
+      }
+      setStd(ns);setDone(nd);
+      const ts=new Date().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
+      save(ns,nd,ts);
+      setMsg(`${results.length} new result${results.length>1?'s':''} loaded — odds recalculated`);
+      setMsgOk(true);setCd(900);
+    }catch{
+      setMsg('Fetch failed — will retry automatically');setMsgOk(false);
+    }
+    setLoading(false);
+  };
+
+  if(!apiKey)return(
+    <Setup onSave={k=>{localStorage.setItem('ipl26_key',k);setApiKey(k);}}/>
+  );
+
+  return(
+    <div>
+      {/* ── HEADER ── */}
+      <div className="hdr">
+        <div className="hdr-in">
+          <div className="logo">
+            <div className="logo-icon">🏏</div>
+            <div>
+              <div className="logo-title">IPL 2026 <span>·</span> Playoff Tracker</div>
+              <div className="logo-sub">
+                <span className="ldot"/>
+                <span>
+                  {lu?`Updated ${lu}`:'Ready'}
+                  {' '}· next check in{' '}
+                  <b style={{color:'rgba(255,255,255,.85)'}}>{fmtCd(cd)}</b>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="hdr-actions">
+            <button className="btn btn-p" onClick={()=>rfRef.current()} disabled={loading}>
+              <span className={loading?'spin':''}>↻</span>
+              {loading?'Checking…':'Refresh now'}
+            </button>
+            <button className="btn btn-g" style={{fontSize:11}}
+              onClick={()=>{
+                if(!window.confirm('Reset standings to M55 baseline?'))return;
+                setStd(INIT_STD);setDone({});setLu('');
+                ['ipl26_std','ipl26_done','ipl26_lu'].forEach(k=>localStorage.removeItem(k));
+                setMsg('Reset to baseline');setMsgOk(false);
+              }}>
+              Reset
+            </button>
+            <button className="btn btn-g" style={{fontSize:11}}
+              onClick={()=>{localStorage.removeItem('ipl26_key');setApiKey('');}}>
+              ⚙ Key
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── HERO ── */}
+      <div className="hero">
+        <div className="hero-in">
+          <div>
+            <div className="hero-eyebrow">🏆 IPL 2026 · Final Phase</div>
+            <h1 className="hero-title">
+              The <em>Playoff</em><br/>Race is On
+            </h1>
+            <p className="hero-sub">
+              Top 4 qualify. {rem.length} matches remain. Every game reshapes the odds — track qualification probabilities in real time.
+            </p>
+            <div className="hero-stats">
+              <div className="hstat">
+                <div className="hstat-val" style={{color:'var(--orange)'}}>{rem.length}</div>
+                <div className="hstat-lbl">Matches left</div>
+              </div>
+              <div className="hstat">
+                <div className="hstat-val" style={{color:'var(--green)'}}>4</div>
+                <div className="hstat-lbl">Playoff spots</div>
+              </div>
+              <div className="hstat">
+                <div className="hstat-val" style={{color:'var(--gold)'}}>
+                  {sorted.filter(t=>t.pts>=12).length}
+                </div>
+                <div className="hstat-lbl">Contenders</div>
+              </div>
+            </div>
+          </div>
+          <div className="hero-trophy">🏆</div>
+        </div>
+      </div>
+
+      {/* ── TABS ── */}
+      <div className="tabs-nav">
+        <div className="tabs-in">
+          {[['table','Standings'],['fixtures','Fixtures'],['odds','Qual Odds'],['analysis','Team Analysis']].map(([t,l])=>(
+            <button key={t} className={`tab${tab===t?' on':''}`} onClick={()=>setTab(t)}>{l}</button>
+          ))}
+        </div>
+      </div>
+
+      <div className="main">
+        {msg&&(
+          <div className={`toast ${msgOk?'tok':'terr'} fade`}>{msgOk?'✓ ':''}{msg}</div>
+        )}
+
+        {/* ── STANDINGS ── */}
+        {tab==='table'&&(
+          <div className="card fade">
+            <div style={{overflowX:'auto'}}>
+              <table className="st">
+                <thead><tr>
+                  <th>#</th><th>Team</th>
+                  <th>M</th><th>W</th><th>L</th><th>Pts</th>
+                  <th>NRR</th><th>Form</th>
+                  <th style={{paddingRight:16}}>Qual%</th>
+                </tr></thead>
+                <tbody>
+                  {sorted.map((t,i)=>{
+                    const q=odds[t.name]??0,c=pc(q);
+                    const [tr,note]=NOTES[t.name]||['→',''];
+                    const tc2=TC[t.name];
+                    return(
+                      <tr key={t.name}
+                        className={i===4?'cutoff':''}
+                        onClick={()=>setTab('analysis')}>
+                        <td>
+                          <span className={`pos-badge ${i<4?'pos-top':'pos-out'}`}>{i+1}</span>
+                        </td>
+                        <td>
+                          <div className="team-row">
+                            <div className="team-chip" style={{
+                              background:tc2?.bg||'rgba(255,255,255,0.05)',
+                              color:tc2?.t||'#fff',
+                              border:`1px solid ${tc2?.p||'rgba(255,255,255,0.1)'}44`
+                            }}>
+                              {t.name.slice(0,3)}
+                            </div>
+                            <div>
+                              <div className="tn">{t.name}</div>
+                              <div className="tnote" style={{color:nc(tr)}}>{tr} {note}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{color:'var(--t3)',fontSize:12}}>{t.m}</td>
+                        <td style={{color:'var(--green)',fontWeight:700}}>{t.w}</td>
+                        <td style={{color:'var(--red)'}}>{t.l}</td>
+                        <td><span className="pts-big">{t.pts}</span></td>
+                        <td>
+                          <span className="nrr-v"
+                            style={{color:t.nrr>=0?'var(--green)':'var(--red)'}}>
+                            {nr(t.nrr)}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="form-row">
+                            {t.form.map((r,fi)=>(
+                              <span key={fi} className="fdot"
+                                style={{background:r?'var(--green)':'var(--red)'}}/>
+                            ))}
+                          </div>
+                        </td>
+                        <td>
+                          <span className="qpct" style={{color:c}}>{q}%</span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <div className="foot-note">
+              <span>Top 4 qualify · NRR as tiebreaker · Qual% via 5 000-run Monte Carlo</span>
+              <span style={{marginLeft:'auto'}}>{rem.length} matches left · click row → full analysis</span>
+            </div>
+            <div className="playoff-band">── Playoff qualification line ──</div>
+          </div>
+        )}
+
+        {/* ── FIXTURES ── */}
+        {tab==='fixtures'&&(
+          <div className="fade">
+            {Object.keys(done).length>0&&(
+              <>
+                <div className="sec-lbl">Completed results</div>
+                <div className="card">
+                  {SCHED.filter(m=>done[m.id]).map(m=>{
+                    const r=done[m.id];
+                    return(
+                      <div key={m.id} className="fix-item">
+                        <span className="fix-id">M{m.id}</span>
+                        <div className="fix-teams">
+                          <span className="fix-t"
+                            style={{
+                              color:r.winner===m.t1?'var(--text)':'var(--t3)',
+                              fontWeight:r.winner===m.t1?700:400
+                            }}>{m.t1}</span>
+                          <span className="fix-vs">vs</span>
+                          <span className="fix-t"
+                            style={{
+                              color:r.winner===m.t2?'var(--text)':'var(--t3)',
+                              fontWeight:r.winner===m.t2?700:400
+                            }}>{m.t2}</span>
+                        </div>
+                        <span className="fix-dt">{m.date}</span>
+                        <span className="badge badge-done">{r.winner} {r.margin}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+            <div className="sec-lbl">Upcoming ({rem.length})</div>
+            <div className="card">
+              {rem.length===0?(
+                <div style={{padding:'32px',textAlign:'center',color:'var(--t3)',fontSize:13}}>
+                  All league matches complete
+                </div>
+              ):rem.map(m=>(
+                <div key={m.id} className="fix-item">
+                  <span className="fix-id">M{m.id}</span>
+                  <div className="fix-teams">
+                    <span className="fix-t">{m.t1}</span>
+                    <span className="fix-vs">vs</span>
+                    <span className="fix-t">{m.t2}</span>
+                  </div>
+                  <span className="fix-dt">{m.date}</span>
+                  <span className="badge badge-up">Upcoming</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── ODDS ── */}
+        {tab==='odds'&&(
+          <div className="fade">
+            <div className="odds-grid">
+              {sorted.map(t=>{
+                const q=odds[t.name]??0,c=pc(q);
+                const gLeft=rem.filter(m=>m.t1===t.name||m.t2===t.name).length;
+                const [tr,note]=NOTES[t.name]||['→',''];
+                const tc2=TC[t.name];
+                return(
+                  <div key={t.name} className="ocard" onClick={()=>setTab('analysis')}>
+                    <div className="ocard-bar" style={{background:tc2?.p||'rgba(255,255,255,0.2)'}}/>
+                    <div className="ocard-name">{t.name}</div>
+                    <div className="ocard-sub">{t.pts} pts · {gLeft} left</div>
+                    <div className="ocirc">
+                      <CircleProgress pct={q} color={c} size={72} stroke={5}/>
+                      <div className="ocirc-center">
+                        <div className="opct" style={{color:c}}>{q}</div>
+                        <div className="opct-unit">%</div>
+                      </div>
+                    </div>
+                    <div style={{textAlign:'center',fontSize:11,fontWeight:700,color:c,marginBottom:6}}>
+                      {pl(q)}
+                    </div>
+                    <div className="oform">
+                      {t.form.map((r,i)=>(
+                        <div key={i} className="oform-bar"
+                          style={{background:r?'var(--green)':'var(--red)'}}/>
+                      ))}
+                    </div>
+                    <div className="opts-row" style={{color:nc(tr)}}>
+                      {tr} {note}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="odds-note">
+              5 000-run Monte Carlo using points, NRR, and recent form weighting.
+              Percentages sum to ~400% (4 spots). Auto-refreshes every 15 min.
+              Click any card to open full team analysis.
+            </div>
+          </div>
+        )}
+
+        {/* ── ANALYSIS ── */}
+        {tab==='analysis'&&(
+          <AnalysisTab std={std} odds={odds} rem={rem}/>
+        )}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>
