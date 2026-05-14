@@ -658,6 +658,16 @@ function App(){
     setLu(ts);
   }
 
+  function markResult(id,winner){
+    const nd={...done,[id]:{winner,margin:'won'}};
+    const ns=winner==='NR'?std:applyRes(std,id,winner);
+    setStd(ns);setDone(nd);
+    const ts=new Date().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
+    save(ns,nd,ts);
+    setMsg(`M${id}: ${winner==='NR'?'No Result':winner+' won'} — standings updated`);
+    setMsgOk(true);
+  }
+
   rfRef.current=async function refresh(){
     if(loading)return;
     setLoading(true);setMsg('');
@@ -888,29 +898,46 @@ function App(){
                             }}>{m.t2}</span>
                         </div>
                         <span className="fix-dt">{m.date}</span>
-                        <span className="badge badge-done">{r.winner} {r.margin}</span>
+                        <span className="badge badge-done">{r.winner==='NR'?'No Result':r.winner+' won'}</span>
+                        <button className="btn btn-g" style={{fontSize:10,padding:'3px 7px',opacity:.5}}
+                          onClick={()=>{
+                            const nd={...done};delete nd[m.id];
+                            let rebuilt=[...INIT_STD];
+                            SCHED.forEach(s=>{if(nd[s.id]&&nd[s.id].winner!=='NR')rebuilt=applyRes(rebuilt,s.id,nd[s.id].winner);});
+                            setStd(rebuilt);setDone(nd);
+                            const ts=new Date().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
+                            save(rebuilt,nd,ts);
+                            setMsg(`M${m.id} undone`);setMsgOk(false);
+                          }}>✕</button>
                       </div>
                     );
                   })}
                 </div>
               </>
             )}
-            <div className="sec-lbl">Upcoming ({rem.length})</div>
+            <div className="sec-lbl">Upcoming ({rem.length}) — tap a team to record the winner</div>
             <div className="card">
               {rem.length===0?(
                 <div style={{padding:'32px',textAlign:'center',color:'var(--t3)',fontSize:13}}>
                   All league matches complete
                 </div>
               ):rem.map(m=>(
-                <div key={m.id} className="fix-item">
+                <div key={m.id} className="fix-item" style={{flexWrap:'wrap',gap:8}}>
                   <span className="fix-id">M{m.id}</span>
-                  <div className="fix-teams">
+                  <div className="fix-teams" style={{flex:'1 1 120px'}}>
                     <span className="fix-t">{m.t1}</span>
                     <span className="fix-vs">vs</span>
                     <span className="fix-t">{m.t2}</span>
                   </div>
                   <span className="fix-dt">{m.date}</span>
-                  <span className="badge badge-up">Upcoming</span>
+                  <div style={{display:'flex',gap:5,flexShrink:0}}>
+                    <button className="btn btn-p" style={{fontSize:11,padding:'5px 10px'}}
+                      onClick={()=>markResult(m.id,m.t1)}>{m.t1} won</button>
+                    <button className="btn btn-p" style={{fontSize:11,padding:'5px 10px'}}
+                      onClick={()=>markResult(m.id,m.t2)}>{m.t2} won</button>
+                    <button className="btn btn-g" style={{fontSize:11,padding:'5px 10px'}}
+                      onClick={()=>markResult(m.id,'NR')}>NR</button>
+                  </div>
                 </div>
               ))}
             </div>
