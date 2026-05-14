@@ -9,8 +9,9 @@ module.exports = async function handler(req, res) {
   if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not set in Vercel environment variables' });
 
   const prompt =
-    `Fetch https://www.cricbuzz.com/cricket-series/9241/indian-premier-league-2026/points-table ` +
-    `and extract the IPL 2026 points table. ` +
+    `Get the current IPL 2026 points table. ` +
+    `Try https://www.cricbuzz.com/cricket-series/9241/indian-premier-league-2026/points-table first. ` +
+    `If that has no data, try https://www.iplt20.com/matches/points-table instead. ` +
     `Return ONLY this JSON, no other text:\n` +
     `{"standings":[{"name":"RCB","m":12,"w":7,"l":5,"nr":0,"pts":14,"nrr":0.50}]}\n` +
     `All 10 teams: RCB SRH GT PBKS CSK RR DC KKR MI LSG. nrr is a signed decimal number.`;
@@ -27,7 +28,7 @@ module.exports = async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 512,
-        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 1 }],
+        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 2 }],
         messages: [{ role: 'user', content: prompt }],
       }),
     });
