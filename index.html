@@ -662,11 +662,10 @@ function App(){
     if(loading)return;
     setLoading(true);setMsg('');
     try{
-      const lastId=Math.max(55,...Object.keys(done).map(Number));
       const res=await fetch('/api/refresh',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({lastId})
+        body:JSON.stringify({})
       });
       if(!res.ok){
         const e=await res.json().catch(()=>({}));
@@ -674,26 +673,54 @@ function App(){
         setMsgOk(false);setLoading(false);return;
       }
       const data=await res.json();
+
+      // Extract the JSON object from Claude's text response
       const txt=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
-      const jm=txt.match(/\[[\s\S]*?\]/);
-      if(!jm)throw new Error('');
-      const results=JSON.parse(jm[0]);
-      if(!results.length){
-        setMsg('Already up to date — no new results');setMsgOk(false);setLoading(false);return;
-      }
+      let parsed=null;
+      // Try to find a {...} block
+      const jm=txt.match(/\{[\s\S]*\}/);
+      if(jm){try{parsed=JSON.parse(jm[0]);}catch{}}
+      if(!parsed)throw new Error('Could not parse response');
+
+      const {standings=[],results=[]}=parsed;
       let ns=[...std];const nd={...done};
+      let updCount=0;
+
+      // Replace full standings when we got all 10 teams from the live site
+      if(standings.length===10){
+        ns=standings.map(s=>{
+          const existing=std.find(t=>t.name===s.name);
+          return{
+            name:s.name,
+            m:Number(s.m)||0,w:Number(s.w)||0,l:Number(s.l)||0,
+            nr:Number(s.nr)||0,pts:Number(s.pts)||0,
+            nrr:Number(s.nrr)||0,
+            form:existing?.form||[0,0,0,0,0]
+          };
+        });
+        updCount++;
+      }
+
+      // Record completed results for Fixtures tab display
       for(const x of results){
-        if(!nd[x.id]&&x.winner&&TEAMS.has(x.winner)){
-          ns=applyRes(ns,x.id,x.winner);
+        if(x.winner&&TEAMS.has(x.winner)&&!nd[x.id]){
           nd[x.id]={winner:x.winner,margin:x.margin||'won'};
+          // If standings weren't replaced, apply incrementally as fallback
+          if(standings.length!==10) ns=applyRes(ns,x.id,x.winner);
+          updCount++;
         }
+      }
+
+      if(!updCount){
+        setMsg('Already up to date');setMsgOk(false);setLoading(false);return;
       }
       setStd(ns);setDone(nd);
       const ts=new Date().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
       save(ns,nd,ts);
-      setMsg(`${results.length} new result${results.length>1?'s':''} loaded — odds recalculated`);
+      const label=standings.length===10?'Live standings loaded from iplt20.com':`${results.length} result${results.length!==1?'s':''} applied`;
+      setMsg(`${label} — odds recalculated`);
       setMsgOk(true);setCd(INTERVAL);
-    }catch{
+    }catch(err){
       setMsg('Fetch failed — will retry automatically');setMsgOk(false);
     }
     setLoading(false);
