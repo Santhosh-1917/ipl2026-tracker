@@ -28,9 +28,10 @@ module.exports = async function handler(req, res) {
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
+        'anthropic-beta': 'web-search-2025-03-05',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 2000,
         tools: [{ type: 'web_search_20250305', name: 'web_search' }],
         messages: [{ role: 'user', content: prompt }],
@@ -38,8 +39,12 @@ module.exports = async function handler(req, res) {
     });
 
     const data = await upstream.json();
-    return res.status(upstream.status).json(data);
+    if (!upstream.ok) {
+      const msg = data?.error?.message || JSON.stringify(data?.error) || `Anthropic API error ${upstream.status}`;
+      return res.status(502).json({ error: msg });
+    }
+    return res.status(200).json(data);
   } catch (err) {
-    return res.status(500).json({ error: 'Upstream fetch failed' });
+    return res.status(500).json({ error: `Upstream fetch failed: ${err.message}` });
   }
 };
