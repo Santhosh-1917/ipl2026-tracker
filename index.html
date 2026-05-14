@@ -684,7 +684,6 @@ function App(){
 
       const {standings=[],results=[]}=parsed;
       let ns=[...std];const nd={...done};
-      let updCount=0;
 
       // Replace full standings when we got all 10 teams from the live site
       if(standings.length===10){
@@ -698,27 +697,22 @@ function App(){
             form:existing?.form||[0,0,0,0,0]
           };
         });
-        updCount++;
+      } else if(!results.length){
+        setMsg('No data returned — try again');setMsgOk(false);setLoading(false);return;
       }
 
       // Record completed results for Fixtures tab display
       for(const x of results){
         if(x.winner&&TEAMS.has(x.winner)&&!nd[x.id]){
           nd[x.id]={winner:x.winner,margin:x.margin||'won'};
-          // If standings weren't replaced, apply incrementally as fallback
           if(standings.length!==10) ns=applyRes(ns,x.id,x.winner);
-          updCount++;
         }
       }
 
-      if(!updCount){
-        setMsg('Already up to date');setMsgOk(false);setLoading(false);return;
-      }
       setStd(ns);setDone(nd);
       const ts=new Date().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
       save(ns,nd,ts);
-      const label=standings.length===10?'Live standings loaded from iplt20.com':`${results.length} result${results.length!==1?'s':''} applied`;
-      setMsg(`${label} — odds recalculated`);
+      setMsg('Live standings loaded from iplt20.com — odds recalculated');
       setMsgOk(true);setCd(INTERVAL);
     }catch(err){
       setMsg('Fetch failed — will retry automatically');setMsgOk(false);
