@@ -715,7 +715,7 @@ function App(){
       setMsg('Live standings loaded from iplt20.com — odds recalculated');
       setMsgOk(true);setCd(INTERVAL);
     }catch(err){
-      setMsg('Fetch failed — will retry automatically');setMsgOk(false);
+      setMsg(`Error: ${err.message||'unknown failure'}`);setMsgOk(false);
     }
     setLoading(false);
   };

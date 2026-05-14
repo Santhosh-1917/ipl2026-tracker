@@ -9,11 +9,10 @@ module.exports = async function handler(req, res) {
   if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not set in Vercel environment variables' });
 
   const prompt =
-    `Search iplt20.com for the current IPL 2026 points table. ` +
+    `Search for "IPL 2026 points table cricbuzz" and get the current standings. ` +
     `Return ONLY this JSON, no other text:\n` +
     `{"standings":[{"name":"RCB","m":12,"w":7,"l":5,"nr":0,"pts":14,"nrr":0.50}]}\n` +
-    `Include all 10 teams using abbreviations: RCB SRH GT PBKS CSK RR DC KKR MI LSG. ` +
-    `nrr is a signed decimal. pts = w*2 + nr*1.`;
+    `All 10 teams: RCB SRH GT PBKS CSK RR DC KKR MI LSG. nrr is signed decimal.`;
 
   try {
     const upstream = await fetch('https://api.anthropic.com/v1/messages', {
@@ -27,7 +26,7 @@ module.exports = async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 512,
-        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 1, allowed_domains: ['iplt20.com'] }],
+        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 1 }],
         messages: [{ role: 'user', content: prompt }],
       }),
     });
